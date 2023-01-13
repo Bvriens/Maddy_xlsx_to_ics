@@ -1,17 +1,15 @@
 import openpyxl
-import icalendar
 import datetime
-from handlers.eventHandler import EventHandler
-from handlers.fileHandler import check_date
+from handlers import EventHandler, FileHandler, DateHandler, InputHandler
 
 # Set up logging
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 
 event_handler = EventHandler()
-
+file_handler = FileHandler()
 
 morning_start_time = datetime.time(8, 35)
 morning_end_time = datetime.time(12, 25)
@@ -19,42 +17,19 @@ afternoon_start_time = datetime.time(13, 5)
 afternoon_end_time = datetime.time(16, 55)
 
 # read xlsx file
-workbook = openpyxl.load_workbook("IVA_2022.xlsx")
-worksheet = workbook.active
+try:
+    filename = file_handler.select_file()
+    workbook = openpyxl.load_workbook(filename)
+    worksheet = workbook.active
+except Exception as e:
+    print("couldn't load xlsx file!")
+    raise e
 
-# create ics calendar
-calendar = icalendar.Calendar()
-calendar.add("prodid", "-//My calendar product//mxm.dk//")
-calendar.add("version", "2.0")
-
-# trying to get the distinct course names from the classes
-# list_of_classes = []
-# # loop through rows and get al the classes strings
-# for row in worksheet.iter_rows(values_only=True):
-#     if row[0]:
-#         pass
-#     else:
-#         print('no date pass')
-#         continue
-#     morning_class = row[1]
-#     afternoon_class = row[2]
-#     if morning_class:
-#        list_of_classes.append(morning_class)
-
-#     if afternoon_class:
-#         list_of_classes.append(afternoon_class)
-
-# # find the courses (maddy gebruikt niet exect dezelfde namen in de excel)
-# print("classes", list_of_classes)
-# list_of_courses = get_common_parts(list_of_classes)
-
-# print("courses", list_of_courses)
-
-# loop through rows and add events to calendar
+# loop through rows and add events to eventhandler
 for idx, row in enumerate(worksheet.iter_rows(values_only=True)):
     try:
         if row[0]:
-            date = check_date(row[0]).date()
+            date = DateHandler.check_date(row[0]).date()
         else:
             print("no date pass")
             continue
@@ -78,25 +53,13 @@ logging.debug("***********************************")
 
 # print all the courses and ask to select the courses
 course_list = event_handler.getCourses()
-
-for i, course in enumerate(course_list, 1):
-    print(f"{i}. {course}")
-selected_courses = input("Enter the numbers of the courses you want to save, separated by commas: ").split(",")
-selected_courses = [int(course.strip()) for course in selected_courses]
-selected_courses = [course_list[i - 1] for i in selected_courses]
-
-# Get events according to selected courses
-events_to_save = event_handler.getEventsList(selected_courses)
+selected_courses = InputHandler.select_courses(course_list)
 
 # create new calendar with only the selected events
-calendar = icalendar.Calendar()
-calendar.add("prodid", "-//My calendar product//mxm.dk//")
-calendar.add("version", "2.0")
-for event in events_to_save:
-    calendar.add_component(event)
+(calendar, number_of_events) = event_handler.generateCalendar(selected_courses)
 
 # write ics file
 with open("courses.ics", "wb") as f:
     f.write(calendar.to_ical())
 
-print(f"Successfully written {len(events_to_save)} events to courses.ics")
+print(f"Successfully written {number_of_events} events to courses.ics")
