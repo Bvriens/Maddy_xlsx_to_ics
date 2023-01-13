@@ -1,10 +1,14 @@
 import openpyxl
 import icalendar
 import datetime
-
 from handlers.eventHandler import EventHandler
 
-# from handlers.stringHandler import get_common_parts
+# Set up logging
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
+
+
 event_handler = EventHandler()
 
 
@@ -50,7 +54,6 @@ calendar.add("version", "2.0")
 # list_of_courses = get_common_parts(list_of_classes)
 
 # print("courses", list_of_courses)
-# exit()
 
 # loop through rows and add events to calendar
 for row in worksheet.iter_rows(values_only=True):
@@ -59,8 +62,10 @@ for row in worksheet.iter_rows(values_only=True):
     else:
         print("no date pass")
         continue
+
     morning_course = row[1]
     afternoon_course = row[2]
+
     if morning_course:
         print("morning", morning_course, date, morning_start_time, morning_end_time)
         event_handler.addEvent(morning_course, date, morning_start_time, morning_end_time)
@@ -69,7 +74,9 @@ for row in worksheet.iter_rows(values_only=True):
         print("afternoon", afternoon_course, date, afternoon_start_time, afternoon_end_time)
         event_handler.addEvent(afternoon_course, date, afternoon_start_time, afternoon_end_time)
 
-event_handler.printEvents()
+logging.debug("*** printEvents *******************")
+logging.debug(event_handler.printEvents)
+logging.debug("***********************************")
 
 # print all the courses and ask to select the courses
 course_list = event_handler.getCourses()
