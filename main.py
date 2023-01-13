@@ -2,6 +2,7 @@ import openpyxl
 import icalendar
 import datetime
 from handlers.eventHandler import EventHandler
+from handlers.fileHandler import check_date
 
 # Set up logging
 import logging
@@ -10,12 +11,6 @@ logging.basicConfig(level=logging.DEBUG)
 
 
 event_handler = EventHandler()
-
-
-# function to convert excel date to python datetime
-def excel_to_python_datetime(excel_date):
-    # return datetime.datetime(1899, 12, 30) + datetime.timedelta(days=excel_date)
-    return excel_date
 
 
 morning_start_time = datetime.time(8, 35)
@@ -56,23 +51,26 @@ calendar.add("version", "2.0")
 # print("courses", list_of_courses)
 
 # loop through rows and add events to calendar
-for row in worksheet.iter_rows(values_only=True):
-    if row[0]:
-        date = excel_to_python_datetime(row[0]).date()
-    else:
-        print("no date pass")
-        continue
+for idx, row in enumerate(worksheet.iter_rows(values_only=True)):
+    try:
+        if row[0]:
+            date = check_date(row[0]).date()
+        else:
+            print("no date pass")
+            continue
 
-    morning_course = row[1]
-    afternoon_course = row[2]
+        morning_course = row[1]
+        afternoon_course = row[2]
 
-    if morning_course:
-        print("morning", morning_course, date, morning_start_time, morning_end_time)
-        event_handler.addEvent(morning_course, date, morning_start_time, morning_end_time)
+        if morning_course:
+            print("morning", morning_course, date, morning_start_time, morning_end_time)
+            event_handler.addEvent(morning_course, date, morning_start_time, morning_end_time)
 
-    if afternoon_course:
-        print("afternoon", afternoon_course, date, afternoon_start_time, afternoon_end_time)
-        event_handler.addEvent(afternoon_course, date, afternoon_start_time, afternoon_end_time)
+        if afternoon_course:
+            print("afternoon", afternoon_course, date, afternoon_start_time, afternoon_end_time)
+            event_handler.addEvent(afternoon_course, date, afternoon_start_time, afternoon_end_time)
+    except Exception as e:
+        raise Exception(e, "on row " + idx)
 
 logging.debug("*** printEvents *******************")
 logging.debug(event_handler.printEvents)
