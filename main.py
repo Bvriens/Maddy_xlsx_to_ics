@@ -31,18 +31,18 @@ for idx, row in enumerate(worksheet.iter_rows(values_only=True)):
         if row[0]:
             date = DateHandler.check_date(row[0]).date()
         else:
-            print("no date pass")
+            print("no date pass on row:", idx + 1)
             continue
 
         morning_course = row[1]
         afternoon_course = row[2]
 
         if morning_course:
-            print("morning", morning_course, date, morning_start_time, morning_end_time)
+            logging.debug("morning", morning_course, date, morning_start_time, morning_end_time)
             event_handler.addEvent(morning_course, date, morning_start_time, morning_end_time)
 
         if afternoon_course:
-            print("afternoon", afternoon_course, date, afternoon_start_time, afternoon_end_time)
+            logging.debug("afternoon", afternoon_course, date, afternoon_start_time, afternoon_end_time)
             event_handler.addEvent(afternoon_course, date, afternoon_start_time, afternoon_end_time)
     except Exception as e:
         raise Exception(e, "on row " + idx)
