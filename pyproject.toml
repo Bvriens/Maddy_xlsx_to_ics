@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "xlsx_to_ics"}]
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = "^3.10"
 openpyxl = "^3.0.10"
 icalendar = "^5.0.4"
 
